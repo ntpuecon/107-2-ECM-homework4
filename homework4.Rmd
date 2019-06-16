@@ -1,0 +1,186 @@
+---
+title: "homework 4"
+author: "林茂廷"
+date: "6/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr); library(stringr); library(knitr); library(kableExtra)
+```
+
+```{css, echo=FALSE}
+.answer {
+  border-style: dashed;
+}
+```
+## 樣本概似函數
+假設有兩種法官，一為有種族偏見（用$\theta=1$表示），另一個沒有（用$\theta=0$表示）。兩種法官在面臨隨機分派的案件時，其條件在被告人的種族（只有白人與非白人）下的判決有罪機率如下：
+
+```{r, echo=FALSE}
+machine<-data.frame(
+  type=c("$\\theta=0$","$\\theta=1$"),
+  Pr_A=c(0.5,0.4),
+  Pr_B=c(0.5,0.7)
+)
+
+machine %>% kable(align="lcc",escape=F,
+                  col.names = c(
+                    "",
+                    "$Pr(V=1|W=1)$",
+                    "$Pr(V=1|W=0)$")) %>%
+  kable_styling(full_width = F)
+```
+
+### (1)
+令$W_i$為第i個案件被告人是否為白人的虛擬變數，$W_i=1$表示為白人;$V_i$是判決無罪（vindicate）的虛擬變數，$V_i=1$表示無罪開釋。
+
+觀察一名法官的1次判決，其資料為$\{(W_i,V_i)\}_{i=1}=\{(1,1)\}$，其樣本概似函數為什麼？最大概似估計下，他會是什麼類型法官?
+
+
+$L(\theta=1)=0.4$
+$L(\theta=0)=0.5$
+故$\hat{\theta}=0$, 為「沒有偏見」法官。
+
+
+### (2)
+觀察其3次判決，樣本為$\{(W_i,V_i)\}_{i=1}=\{(1,1),(1,0),(0,0)\}$，其樣本概似函數為什麼？最大概似估計下，他會是什麼類型法官?
+
+
+$L(\theta=1)=0.4*0.6*0.3=0.072$
+$L(\theta=0)=0.5*0.5*0.5=0.125$
+故$\hat{\theta}=0$，為「沒有偏見」法官。
+
+
+### (3)
+若真實$\theta=1$, 只觀察一筆資料$\{(W_i,V_i)\}_{i=1}$下，$\hat{\theta}$的抽樣分配為何？
+
+
+有種樣本觀察可能：
+由題(1): (1,1)時,$\hat{\theta}=0$。
+(1,0)時，$L(\theta=1)=0.6; L(\theta=0)=0.5$; 故$\hat{\theta}=1$。
+(0,1)時，$L(\theta=1)=0.7; L(\theta=0)=0.5$; 故$\hat{\theta}=1$。
+(0,0)時，$L(\theta=1)=0.3; L(\theta=0)=0.5$; 故$\hat{\theta}=0$。
+在$\theta=1$時，觀察到(1,1)機率為0.4; 觀察到(1,0)機率為0.6; 觀察到(0,1)機率為0.7; 觀察到(0,0)機率為0.3。 以上為給定W的機率，又案件為隨機指派；故觀察到(1,X)與(0,X)各有1/2，所以觀察到(1,1)機率為0.2; 觀察到(1,0)機率為0.3; 觀察到(0,1)機率為0.35; 觀察到(0,0)機率為0.15。
+其中(1,1),(0,0)會得到$\hat{\theta}=0$,故$\Pr(\hat{\theta}=0)=0.2+0.15=0.35; $\Pr(\hat{\theta}=1)=0.65.
+
+## MLE
+
+Consider the following model:
+
+```{r, echo=FALSE}
+machine<-data.frame(
+  Y=c("$f(Y|\\theta)$"),
+  "1"=c("$\\theta$"),
+  "2"=c("$(1-\\theta)/2$"),
+  "3"=c("$(1-\\theta)/2$")
+)
+
+machine %>% kable(align="lcc",escape=F,
+                  col.names = c(
+                    "Y",
+                    "1",
+                    "2",
+                    "3")) %>%
+  kable_styling(full_width = F)
+```
+
+### (4) 
+Construct the MLE $\hat{\theta}$ of $\theta$.     
+
+<div class="answer">
+$$\begin{array}{lcl}
+\ln L	&=&	\left[\mbox{# of 1 in sample}\times\ln\theta+\mbox{# of 2 in sample}\times\ln\frac{1-\theta}{2}+\mbox{# of 3 in sample}\times\ln\frac{1-\theta}{2}\right]\\
+	&=&	\sum_{i}\left[Y_{1,i}\ln\theta+Y_{2,i}\ln(1-\theta)/2+(1-Y_{1,i}-Y_{2,i})\ln(1-\theta)/2\right]
+	\end{array}$$
+where 
+$$\begin{array}{lcl}
+Y_{1,i}=\begin{cases}
+1 & \mbox{if }Y_{i}=1,\\
+0 & \mbox{otherwise;} \end{cases}\\
+Y_{2,i}=\begin{cases}
+1 & \mbox{if }Y_{i}=2,\\
+0 & \mbox{otherwise;} \end{cases}\\
+\end{array}$$
+FOC:
+$$\begin{array}{lcl}
+0&=& \sum_i\left[Y_{1,i}\frac{1}{\hat{\theta}}-Y_{2,i}\frac
+{1}{1-\hat{\theta}}-(1-Y_{1,i}-Y_{2,i})\frac
+{1}{1-\hat{\theta}}\right]\\
+&=& \sum_i\left[Y_{1,i}\frac{1}{\hat{\theta}}-
+(1-Y_{1,i})\frac{1}{1-\hat{\theta}}\right]
+\end{array}.$$
+
+Therefore,
+$$
+\hat{\theta}=\frac
+{\sum_i Y_{1,i}}{N}=\frac{\mbox{# of }Y_i=1}{N}
+$$
+</div>
+
+### (5) 
+After collecting data of 287 observations, the outcome frequency is summarized in the following table
+
+```{r, echo=FALSE}
+machine<-data.frame(
+  Y=c(""),
+  "1"=c("115"),
+  "2"=c("80"),
+  "3"=c("92")
+)
+
+machine %>% kable(align="lcc",escape=F,
+                  col.names = c(
+                    "Y",
+                    "1",
+                    "2",
+                    "3")) %>%
+  kable_styling(full_width = F)
+```
+
+Compute the average sample log likelihood function value (i.e. the sample log likelihood value divided by sample size). 
+
+<div class="answer">
+```{r, echo=FALSE}
+thetaHat <- 115/287
+lnL <- 115*log(thetaHat)+80*log((1-thetaHat)/2)+92*log((1-thetaHat)/2)
+lnL_avg <- lnL/287
+```
+
+$\hat{\theta}=115/287=`r round(thetaHat,digits=2)`$. Hence ($\ln$ and $\log$ are the same thing in most computer languages),
+$$
+\begin{array}{lcl}
+\ln L	&=&	\left[\mbox{# of 1 in sample}\times\ln\hat{\theta}+\mbox{# of 2 in sample}\times\ln\frac{1-\hat{\theta}}{2}+\mbox{# of 3 in sample}\times\ln\frac{1-\hat{\theta}}{2}\right]\\
+	&=&	115*log(`r round(thetaHat,digits=2)`)+80*log((1-`r round(thetaHat,digits=2)`)/2)+92*log((1-`r round(thetaHat,digits=2)`)/2)=`r round(lnL,digits=4)`.
+\end{array}
+$$
+The average sample loglikelihood value is $\ln L/287=`r round(lnL_avg,digits=4)`$.
+</div>
+
+### (6) 
+Continued from (5). Consider a base reference model, say model 0, which assumes $\Pr(Y=1)=p_1,\Pr(Y=2)=p_2,\Pr(Y=3)=1-p_1-p_2$. Compute its the average sample log likelihood function value.
+
+<div class="answer">
+```{r, echo=FALSE}
+hatp_1 <- 115/287
+hatp_2 <- 80/287
+lnL0 <- 115*log(hatp_1)+80*log(hatp_2)+92*log(1-hatp_1-hatp_2)
+lnL_avg0 <- lnL0/287
+```
+
+The base model is a standard situation to describe multiple outcomes without explanatory variables. Its estimators are simply the frequency of each outcome divided by the total observation numbers. Hence,
+$$\begin{array}{lcl}
+\hat{p}_1&=&115/287=`r round(hatp_1,4)`\\
+\hat{p}_2&=&80/287=`r round(hatp_2,4)`
+\end{array}
+$$
+Its sample loglikelihood value is
+$$
+\begin{array}{lcl}
+\ln L	&=&	\left[\mbox{# of 1 in sample}\times\ln\hat{p}_1+\mbox{# of 2 in sample}\times\ln\hat{p}_2+\mbox{# of 3 in sample}\times\ln(1-\hat{p}_1-\hat{p}_2)\right]\\
+	&=&	115*log(`r round(hatp_1,digits=2)`)+80*log((1-`r round(hatp_2,digits=2)`)/2)+92*log((1-`r round(hatp_1,digits=2)`-
+	`r round(hatp_2,digits=2)`)/2)=`r round(lnL0,digits=4)`.
+\end{array}$$
+Therefore, the avarage sample loglikehood value is $\ln L/287=`r round(lnL_avg0,4)`$.
+</div>
